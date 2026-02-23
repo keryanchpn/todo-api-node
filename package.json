@@ -31,8 +31,5 @@
     "eslint": "^10.0.1",
     "jest": "^30.2.0",
     "supertest": "^7.2.2"
-  },
-  "overrides": {
-    "minimatch": "^9.0.5"
   }
 }
