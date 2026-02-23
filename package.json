@@ -5,7 +5,20 @@
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "jest --coverage"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "app.js",
+      "routes/**/*.js",
+      "database/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 70
+      }
+    }
   },
   "dependencies": {
     "express": "^4.17.1",
@@ -14,6 +27,8 @@
     "sql.js": "^1.6.0"
   },
   "devDependencies": {
-    "eslint": "^8.57.1"
+    "eslint": "^8.57.1",
+    "jest": "^30.2.0",
+    "supertest": "^7.2.2"
   }
 }
