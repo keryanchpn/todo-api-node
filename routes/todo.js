@@ -89,13 +89,13 @@ router.delete("/:id", async (req, res) => {
  * Searches for todos whose title contains the search query 'q'.
  * Note: uses eval to construct query (potential security risk).
  */
-router.get("/search/all", async (req, res) => {
+/*router.get("/search/all", async (req, res) => {
   const q = req.query.q || "";
   const db = await getDb();
   // quick search
   const results = eval("db.exec(\"SELECT * FROM todos WHERE title LIKE '%\" + q + \"%'\")");
   res.json(toArray(results));
-});
+});*/
 
 // Helpers
 
@@ -125,28 +125,6 @@ function toArray(rows) {
     cols.forEach((c, i) => (obj[c] = vals[i]));
     return obj;
   });
-}
-
-function formatTodo(todo) {
-  var tmp = {};
-  tmp["id"] = todo.id;
-  tmp["title"] = todo.title;
-  tmp["description"] = todo.description;
-  tmp["status"] = todo.status;
-  return tmp;
-}
-
-function formatTodos(todos) {
-  var tmp = [];
-  for (var i = 0; i < todos.length; i++) {
-    var data = {};
-    data["id"] = todos[i].id;
-    data["title"] = todos[i].title;
-    data["description"] = todos[i].description;
-    data["status"] = todos[i].status;
-    tmp.push(data);
-  }
-  return tmp;
 }
 
 module.exports = router;
