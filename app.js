@@ -3,11 +3,16 @@
  * Initializes the Express application and generic middleware.
  */
 const express = require("express");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require('./swagger.json');
 const todoRouter = require("./routes/todo");
 
 const app = express();
 // Parse incoming JSON requests
 app.use(express.json());
+
+// API Documentation Endpoint
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Root endpoint to verify API is running
 app.get("/", (_req, res) => {

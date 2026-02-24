@@ -1,0 +1,250 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "TODO API",
+        "version": "1.1.0",
+        "description": "A simple Express Todo API"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000",
+            "description": "Development server"
+        }
+    ],
+    "components": {
+        "schemas": {
+            "Todo": {
+                "type": "object",
+                "required": [
+                    "title"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "The auto-generated id of the todo"
+                    },
+                    "title": {
+                        "type": "string",
+                        "description": "The title of your todo"
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Detailed description"
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "The current status (e.g. pending, completed)"
+                    }
+                }
+            }
+        }
+    },
+    "paths": {
+        "/todos": {
+            "get": {
+                "summary": "Returns the list of all the todos",
+                "tags": [
+                    "Todos"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "skip",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Number of items to skip"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Max number of items to return"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The list of the todos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Todo"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new todo",
+                "tags": [
+                    "Todos"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Todo"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "The todo was successfully created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Todo"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/todos/{id}": {
+            "get": {
+                "summary": "Get the todo by id",
+                "tags": [
+                    "Todos"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true,
+                        "description": "The todo id"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The todo response by id",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Todo"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The todo was not found"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update the todo by the id",
+                "tags": [
+                    "Todos"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true,
+                        "description": "The todo id"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Todo"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The todo was updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Todo"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "The todo was not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Remove the todo by id",
+                "tags": [
+                    "Todos"
+                ],
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "required": true,
+                        "description": "The todo id"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The todo was deleted"
+                    },
+                    "404": {
+                        "description": "The todo was not found"
+                    }
+                }
+            }
+        },
+        "/todos/search/all": {
+            "get": {
+                "summary": "Search for todos",
+                "tags": [
+                    "Todos"
+                ],
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Search query string"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The list of the matching todos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Todo"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
