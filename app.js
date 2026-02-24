@@ -4,10 +4,15 @@
  */
 const express = require("express");
 const todoRouter = require("./routes/todo");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
 
 const app = express();
 // Parse incoming JSON requests
 app.use(express.json());
+
+// Serve Swagger documentation
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Root endpoint to verify API is running
 app.get("/", (_req, res) => {
