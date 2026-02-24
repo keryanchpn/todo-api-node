@@ -7,7 +7,8 @@
     "start": "node app.js",
     "lint": "eslint .",
     "test": "jest",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "release": "standard-version"
   },
   "jest": {
     "collectCoverageFrom": [
@@ -32,6 +33,7 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.0.1",
     "jest": "^30.2.0",
+    "standard-version": "^9.5.0",
     "supertest": "^7.2.2"
   }
 }
