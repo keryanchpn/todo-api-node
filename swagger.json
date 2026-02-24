@@ -1,0 +1,186 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Enhanced Express Todo App API",
+        "version": "1.0.0",
+        "description": "A simple Express Todo API"
+    },
+    "paths": {
+        "/todos": {
+            "get": {
+                "summary": "Retrieves a list of todos with pagination.",
+                "description": "Accepts 'skip' and 'limit' query parameters. Defaults to 10 items.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "skip",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Number of items to skip"
+                    },
+                    {
+                        "in": "query",
+                        "name": "limit",
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Number of items to return"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of todos"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Creates a new todo item in the database.",
+                "description": "Requires a title in the request body. Description and status are optional.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "title"
+                                ],
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "default": "pending"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Todo created"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/todos/{id}": {
+            "get": {
+                "summary": "Retrieves a specific todo item by its ID.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "The todo ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "The todo item"
+                    },
+                    "404": {
+                        "description": "Todo not found"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Updates an existing todo item's title, description, or status.",
+                "description": "Provides partial updates (unprovided fields retain their previous values).",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "The todo ID"
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "title": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    },
+                                    "status": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "The updated todo item"
+                    },
+                    "404": {
+                        "description": "Todo not found"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Deletes a specific todo item by its ID.",
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "The todo ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Todo deleted"
+                    },
+                    "404": {
+                        "description": "Todo not found"
+                    }
+                }
+            }
+        },
+        "/todos/search/all": {
+            "get": {
+                "summary": "Searches for todos whose title contains the search query 'q'.",
+                "parameters": [
+                    {
+                        "in": "query",
+                        "name": "q",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "The search query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A list of matching todos"
+                    }
+                }
+            }
+        }
+    }
+}

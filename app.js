@@ -4,7 +4,7 @@
  */
 const express = require("express");
 const swaggerUi = require("swagger-ui-express");
-const swaggerJsdoc = require("swagger-jsdoc");
+const swaggerDocument = require('./swagger.json');
 const todoRouter = require("./routes/todo");
 
 const app = express();
@@ -12,20 +12,7 @@ const app = express();
 app.use(express.json());
 
 // Swagger openapi configuration
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Enhanced Express Todo App API',
-      version: '1.0.0',
-      description: 'A simple Express Todo API',
-    },
-  },
-  apis: ['./routes/*.js'],
-};
-
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Root endpoint to verify API is running
 app.get("/", (_req, res) => {
