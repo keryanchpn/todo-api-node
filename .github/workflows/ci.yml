@@ -163,8 +163,9 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Deploy to Vercel (staging preview)
-        run: npx vercel --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel --yes
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
@@ -187,8 +188,9 @@ jobs:
         run: npm ci
 
       - name: Deploy to Vercel (production)
-        run: npx vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+        run: npx vercel --prod --yes
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
