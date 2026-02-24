@@ -1,5 +1,9 @@
 # Todo API
 
+[![CI](https://github.com/keryanchpn/todo-api-node/actions/workflows/ci.yml/badge.svg)](https://github.com/keryanchpn/todo-api-node/actions/workflows/ci.yml)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=keryanchpn_todo-api-node&metric=coverage)](https://sonarcloud.io/summary/new_code?id=keryanchpn_todo-api-node)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=keryanchpn_todo-api-node&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=keryanchpn_todo-api-node)
+
 Une API RESTful de gestion de tâches (Todos), construite avec Node.js et Express.
 Ce projet s'inscrit dans le cadre d'un cours CI/CD complet implémentant des tests, une couverture de code, l'analyse de qualité et des déploiements continus.
 
