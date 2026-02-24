@@ -185,7 +185,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
       - name: Deploy to Vercel (production)
         run: npx vercel --prod --yes
