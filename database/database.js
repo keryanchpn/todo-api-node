@@ -6,6 +6,12 @@ const DB_PATH = path.join(__dirname, "..", "todo.db");
 
 let db;
 
+/**
+ * Initializes and returns the SQLite database instance.
+ * Reads from disk if a database file exists, otherwise creates a new one in memory.
+ * Creates the 'todos' table if it does not exist.
+ * @returns {Promise<SQL.Database>} The initialized database instance.
+ */
 async function getDb() {
   if (db) return db;
   console.log("initializing database connection")
@@ -27,6 +33,10 @@ async function getDb() {
   return db;
 }
 
+/**
+ * Exports the current state of the in-memory database and writes it to disk.
+ * This persists changes made to the database.
+ */
 function saveDb() {
   if (db) {
     console.log("saving database to disk")

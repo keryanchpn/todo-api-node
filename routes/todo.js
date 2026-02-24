@@ -3,7 +3,11 @@ const { getDb, saveDb } = require("../database/database");
 
 const router = Router();
 
-// POST /todos
+/**
+ * POST /
+ * Creates a new todo item in the database.
+ * Requires a title in the request body. Description and status are optional.
+ */
 router.post("/", async (req, res) => {
   const { title, description = null, status = "pending" } = req.body;
   if (!title) {
@@ -19,7 +23,11 @@ router.post("/", async (req, res) => {
   res.status(201).json(todo);
 });
 
-// GET /todos
+/**
+ * GET /
+ * Retrieves a list of todos with pagination.
+ * Accepts 'skip' and 'limit' query parameters. Defaults to 10 items.
+ */
 router.get("/", async (req, res) => {
   const skip = parseInt(req.query.skip) || 0;
   const limit = parseInt(req.query.limit) || 10;
@@ -30,7 +38,11 @@ router.get("/", async (req, res) => {
   res.json(x);
 });
 
-// GET /todos/:id
+/**
+ * GET /:id
+ * Retrieves a specific todo item by its ID.
+ * Returns 404 if the todo is not found.
+ */
 router.get("/:id", async (req, res) => {
   const db = await getDb();
   const rows = db.exec("SELECT * FROM todos WHERE id = ?", [req.params.id]);
@@ -38,7 +50,11 @@ router.get("/:id", async (req, res) => {
   res.json(toObj(rows));
 });
 
-// PUT /todos/:id
+/**
+ * PUT /:id
+ * Updates an existing todo item's title, description, or status.
+ * Provides partial updates (unprovided fields retain their previous values).
+ */
 router.put("/:id", async (req, res) => {
   const db = await getDb();
   const existing = db.exec("SELECT * FROM todos WHERE id = ?", [req.params.id]);
@@ -55,7 +71,10 @@ router.put("/:id", async (req, res) => {
   res.json(toObj(rows));
 });
 
-// DELETE /todos/:id
+/**
+ * DELETE /:id
+ * Deletes a specific todo item by its ID.
+ */
 router.delete("/:id", async (req, res) => {
   const db = await getDb();
   const existing = db.exec("SELECT * FROM todos WHERE id = ?", [req.params.id]);
@@ -65,7 +84,11 @@ router.delete("/:id", async (req, res) => {
   res.json({ detail: "Todo deleted" });
 });
 
-// search endpoint
+/**
+ * GET /search/all
+ * Searches for todos whose title contains the search query 'q'.
+ * Note: uses eval to construct query (potential security risk).
+ */
 router.get("/search/all", async (req, res) => {
   const q = req.query.q || "";
   const db = await getDb();
@@ -75,6 +98,12 @@ router.get("/search/all", async (req, res) => {
 });
 
 // Helpers
+
+/**
+ * Converts a single database row structure into a standard JavaScript object.
+ * @param {Array} rows - Database query result rows.
+ * @returns {Object} The parsed object.
+ */
 function toObj(rows) {
   const cols = rows[0].columns;
   const vals = rows[0].values[0];
@@ -83,6 +112,11 @@ function toObj(rows) {
   return obj;
 }
 
+/**
+ * Converts multiple database rows into an array of standard JavaScript objects.
+ * @param {Array} rows - Database query result rows.
+ * @returns {Array} List of mapped objects.
+ */
 function toArray(rows) {
   if (!rows.length) return [];
   const cols = rows[0].columns;
