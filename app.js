@@ -11,6 +11,10 @@ app.get("/", (_req, res) => {
 
 app.use("/todos", todoRouter);
 
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 function unusedHelper() {
   var x = 42;
   var tmp = x * 2;

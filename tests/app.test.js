@@ -7,6 +7,14 @@ beforeEach(async () => {
   db.run("DELETE FROM todos");
 });
 
+describe("GET /health", () => {
+  test("retourne 200 avec status ok", async () => {
+    const res = await request(app).get("/health");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ status: "ok" });
+  });
+});
+
 describe("GET /", () => {
   test("retourne 200 avec un message de bienvenue", async () => {
     const res = await request(app).get("/");
