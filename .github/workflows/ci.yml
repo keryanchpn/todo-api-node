@@ -45,7 +45,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Test with coverage
-        run: npm run coverage
+        run: npx jest --coverage
 
       - name: Upload coverage report
         if: always()
