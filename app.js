@@ -18,6 +18,10 @@ app.get("/", (_req, res) => {
 // Mount the todo router on the /todos path
 app.use("/todos", todoRouter);
 
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 function unusedHelper() {
   var x = 42;
   var tmp = x * 2;
