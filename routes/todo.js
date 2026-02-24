@@ -4,9 +4,49 @@ const { getDb, saveDb } = require("../database/database");
 const router = Router();
 
 /**
- * POST /
- * Creates a new todo item in the database.
- * Requires a title in the request body. Description and status are optional.
+ * @swagger
+ * components:
+ *   schemas:
+ *     Todo:
+ *       type: object
+ *       required:
+ *         - title
+ *       properties:
+ *         id:
+ *           type: integer
+ *           description: The auto-generated id of the todo
+ *         title:
+ *           type: string
+ *           description: The title of your todo
+ *         description:
+ *           type: string
+ *           description: Detailed description
+ *         status:
+ *           type: string
+ *           description: The current status (e.g. pending, completed)
+ */
+
+/**
+ * @swagger
+ * /todos:
+ *   post:
+ *     summary: Create a new todo
+ *     tags: [Todos]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Todo'
+ *     responses:
+ *       201:
+ *         description: The todo was successfully created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       422:
+ *         description: Validation error
  */
 router.post("/", async (req, res) => {
   const { title, description = null, status = "pending" } = req.body;
@@ -24,9 +64,31 @@ router.post("/", async (req, res) => {
 });
 
 /**
- * GET /
- * Retrieves a list of todos with pagination.
- * Accepts 'skip' and 'limit' query parameters. Defaults to 10 items.
+ * @swagger
+ * /todos:
+ *   get:
+ *     summary: Returns the list of all the todos
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: query
+ *         name: skip
+ *         schema:
+ *           type: integer
+ *         description: Number of items to skip
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *         description: Max number of items to return
+ *     responses:
+ *       200:
+ *         description: The list of the todos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Todo'
  */
 router.get("/", async (req, res) => {
   const skip = parseInt(req.query.skip) || 0;
@@ -39,9 +101,27 @@ router.get("/", async (req, res) => {
 });
 
 /**
- * GET /:id
- * Retrieves a specific todo item by its ID.
- * Returns 404 if the todo is not found.
+ * @swagger
+ * /todos/{id}:
+ *   get:
+ *     summary: Get the todo by id
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The todo id
+ *     responses:
+ *       200:
+ *         description: The todo response by id
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       404:
+ *         description: The todo was not found
  */
 router.get("/:id", async (req, res) => {
   const db = await getDb();
@@ -51,9 +131,33 @@ router.get("/:id", async (req, res) => {
 });
 
 /**
- * PUT /:id
- * Updates an existing todo item's title, description, or status.
- * Provides partial updates (unprovided fields retain their previous values).
+ * @swagger
+ * /todos/{id}:
+ *   put:
+ *     summary: Update the todo by the id
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The todo id
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Todo'
+ *     responses:
+ *       200:
+ *         description: The todo was updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Todo'
+ *       404:
+ *         description: The todo was not found
  */
 router.put("/:id", async (req, res) => {
   const db = await getDb();
@@ -72,8 +176,23 @@ router.put("/:id", async (req, res) => {
 });
 
 /**
- * DELETE /:id
- * Deletes a specific todo item by its ID.
+ * @swagger
+ * /todos/{id}:
+ *   delete:
+ *     summary: Remove the todo by id
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: The todo id
+ *     responses:
+ *       200:
+ *         description: The todo was deleted
+ *       404:
+ *         description: The todo was not found
  */
 router.delete("/:id", async (req, res) => {
   const db = await getDb();
@@ -85,9 +204,26 @@ router.delete("/:id", async (req, res) => {
 });
 
 /**
- * GET /search/all
- * Searches for todos whose title contains the search query 'q'.
- * Note: uses eval to construct query (potential security risk).
+ * @swagger
+ * /todos/search/all:
+ *   get:
+ *     summary: Search for todos
+ *     tags: [Todos]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Search query string
+ *     responses:
+ *       200:
+ *         description: The list of the matching todos
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Todo'
  */
 router.get("/search/all", async (req, res) => {
   const q = req.query.q || "";
