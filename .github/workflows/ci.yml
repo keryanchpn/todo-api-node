@@ -79,7 +79,7 @@ jobs:
 
   # Builds a Docker image and pushes it to GitHub Container Registry (only on push to main)
   docker-build-push:
-    needs: lint
+    needs: quality-gate
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
@@ -117,11 +117,18 @@ jobs:
   # Performs static code analysis using SonarCloud
   quality-gate:
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [lint, coverage]
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@v6
         env:
@@ -133,7 +140,7 @@ jobs:
 
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: quality-gate
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: staging
     steps:
