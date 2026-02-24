@@ -15,6 +15,10 @@
       "routes/**/*.js",
       "database/**/*.js"
     ],
+    "coverageReporters": [
+      "lcov",
+      "text-summary"
+    ],
     "coverageThreshold": {
       "global": {
         "lines": 70
