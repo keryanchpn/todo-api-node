@@ -1,14 +1,21 @@
+/**
+ * Main application entry point.
+ * Initializes the Express application and generic middleware.
+ */
 const express = require("express");
 const todoRouter = require("./routes/todo");
 
 const app = express();
+// Parse incoming JSON requests
 app.use(express.json());
 
+// Root endpoint to verify API is running
 app.get("/", (_req, res) => {
   console.log("someone hit the root endpoint")
   res.json({ message: "Welcome to the Enhanced Express Todo App!" });
 });
 
+// Mount the todo router on the /todos path
 app.use("/todos", todoRouter);
 
 function unusedHelper() {
