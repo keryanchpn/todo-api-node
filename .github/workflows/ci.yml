@@ -28,7 +28,7 @@ jobs:
       - name: Lint
         run: npx eslint .
 
-  # Runs tests and generates coverage report
+  # Runs tests and generates coverage report using Jest
   test:
     runs-on: ubuntu-latest
     steps:
