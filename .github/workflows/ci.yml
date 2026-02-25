@@ -55,7 +55,7 @@ jobs:
           path: coverage/
           retention-days: 7
 
-  # Scans for security vulnerabilities using npm audit
+  # Scans for security vulnerabilities 
   security-scan:
     runs-on: ubuntu-latest
     needs: lint
