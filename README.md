@@ -62,6 +62,12 @@ Une documentation Swagger UI est générée automatiquement et servie par l'appl
 Une fois l'application démarrée, rendez-vous sur :
 👉 `http://localhost:3000/api-docs`
 
+## 🚦 Stratégie de déploiement
+
+Le projet utilise une stratégie **canary deployment** via deux environnements Vercel :
+- **Staging** : chaque push sur `staging` déclenche un déploiement preview (canary)
+- **Production** : merge sur `main` → déploiement production après validation du quality gate
+
 ## ⚙️ Pipeline CI/CD (GitHub Actions)
 
 Lorsqu'un \`push\` ou une \`Pull Request\` est créé(e) sur la branche \`main\`, le workflow suivant s'exécute :
