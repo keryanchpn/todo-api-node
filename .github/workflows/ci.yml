@@ -55,7 +55,8 @@ jobs:
           path: coverage/
           retention-days: 7
 
-  # Scans for security vulnerabilities 
+   # NATHAN
+   # Scans for security vulnerabilities 
   security-scan:
     runs-on: ubuntu-latest
     needs: lint
@@ -73,7 +74,8 @@ jobs:
 
       - name: Security audit
         run: npm audit --audit-level=high --omit=dev
-
+  
+  # NATHAN
   # Performs static code analysis using SonarCloud
   quality-gate:
     runs-on: ubuntu-latest
@@ -98,7 +100,8 @@ jobs:
           args: >
             -Dsonar.projectKey=keryanchpn_todo-api-node
 
-  # Builds a Docker image and pushes it to GitHub Container Registry (only on push to main)
+  # BAPTISTE
+  # Builds a Docker image and pushes it to GitHub Container Registry (only on push to main) 
   docker-build-push:
     needs: quality-gate
     runs-on: ubuntu-latest
@@ -126,6 +129,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  # KERYAN
   deploy-staging:
     runs-on: ubuntu-latest
     needs: [lint, test]
@@ -136,12 +140,16 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Deploy to Vercel (staging preview)
-        run: npx vercel --yes
+        run: |
+          DEPLOYMENT_URL=$(npx vercel --yes)
+          npx vercel alias set $DEPLOYMENT_URL todo-api-node-staging.vercel.app
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+
+  # KERYAN
   deploy-production:
     runs-on: ubuntu-latest
     needs: deploy-staging
@@ -158,6 +166,7 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
+  # BAPTISTE
   performance-tests:
     runs-on: ubuntu-latest
     needs: deploy-production
@@ -170,6 +179,8 @@ jobs:
         with:
           filename: k6/script.js
 
+
+  # KERYAN
   verify-deployment:
     runs-on: ubuntu-latest
     needs: deploy-production
