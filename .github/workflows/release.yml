@@ -33,11 +33,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Bump version and create changelog
+      - name: Bump version and create tag
         run: npm run release -- --release-as ${{ inputs.release_type }}
 
-      - name: Push tag and changelog
-        run: git push --follow-tags origin main
+      - name: Push tag only
+        run: git push origin "refs/tags/$(git describe --tags --abbrev=0)"
 
       - name: Create GitHub Release
         env:
