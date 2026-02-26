@@ -31,6 +31,7 @@ jobs:
   # Runs tests and generates coverage report using Jest
   test:
     runs-on: ubuntu-latest
+    needs: lint
     strategy:
       matrix:
         node-version: [18, 20, 22]
@@ -143,7 +144,7 @@ jobs:
   # KERYAN
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [quality-gate, security-scan, contract-testing]
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     environment: staging
     steps:
@@ -161,7 +162,7 @@ jobs:
   # KERYAN
   deploy-production:
     runs-on: ubuntu-latest
-    needs: quality-gate
+    needs: [quality-gate, security-scan, contract-testing]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
     steps:
@@ -191,7 +192,7 @@ jobs:
 
   notify:
     runs-on: ubuntu-latest
-    needs: [lint, test, contract-testing, security-scan, quality-gate, deploy-production]
+    needs: [lint, test, contract-testing, security-scan, quality-gate, deploy-production, smoke-tests, performance-tests]
     if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
       - name: Discord notification
