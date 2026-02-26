@@ -57,7 +57,7 @@ jobs:
 
    # NATHAN
    # Scans for security vulnerabilities 
-  security-scan:
+  security-scan:  
     runs-on: ubuntu-latest
     needs: lint
     steps:
@@ -177,6 +177,20 @@ jobs:
         with:
           filename: k6/script.js
 
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [lint, test, security-scan, quality-gate, deploy-production]
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Discord notification
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: ${{ contains(needs.*.result, 'failure') && 'error' || 'info' }}
+          text: |
+            **${{ github.repository }}** — Pipeline `${{ contains(needs.*.result, 'failure') && 'FAILED' || 'SUCCESS' }}`
+            Branch: `${{ github.ref_name }}` · Commit: `${{ github.sha }}`
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
 
   # KERYAN
   verify-deployment:
