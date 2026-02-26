@@ -200,3 +200,52 @@ jobs:
           done
           echo "Health check failed after 2 minutes"
           exit 1
+
+  # BAPTISTE
+  # Rolls back to the previous Vercel deployment if verify-deployment fails
+  rollback:
+    runs-on: ubuntu-latest
+    needs: verify-deployment
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Get previous deployment URL
+        id: previous-deployment
+        run: |
+          PREVIOUS_URL=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v6/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&limit=5&target=production" \
+            | jq -r '[.deployments[] | select(.state == "READY")] | .[1].url // empty')
+          if [ -z "$PREVIOUS_URL" ]; then
+            echo "No previous deployment found to rollback to"
+            exit 1
+          fi
+          echo "url=$PREVIOUS_URL" >> "$GITHUB_OUTPUT"
+          echo "Rolling back to: $PREVIOUS_URL"
+
+      - name: Promote previous deployment to production
+        run: |
+          DEPLOYMENT_ID=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v6/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&limit=5&target=production" \
+            | jq -r '[.deployments[] | select(.state == "READY")] | .[1].uid')
+          curl -s -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"id\": \"$DEPLOYMENT_ID\"}" \
+            "https://api.vercel.com/v12/now/alias?projectId=${{ secrets.VERCEL_PROJECT_ID }}"
+          echo "Rollback initiated to deployment $DEPLOYMENT_ID"
+
+      - name: Verify rollback
+        run: |
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://todo-api-node.vercel.app/health)
+          if [ "$STATUS" = "200" ]; then
+            echo "Rollback successful — health check passed (HTTP $STATUS)"
+          else
+            echo "Rollback verification failed (HTTP $STATUS)"
+            exit 1
+          fi
