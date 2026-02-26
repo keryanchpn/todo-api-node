@@ -28,6 +28,26 @@ jobs:
       - name: Lint
         run: npx eslint .
 
+  # BAPTISTE
+  # Validates the OpenAPI contract (swagger.json) using Spectral
+  api-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Validate API contract
+        run: npx spectral lint swagger.json --ruleset .spectral.yaml --fail-severity error
+
   # Runs tests and generates coverage report using Jest
   test:
     runs-on: ubuntu-latest
