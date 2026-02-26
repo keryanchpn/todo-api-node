@@ -230,7 +230,7 @@ jobs:
   # Rolls back to the previous Vercel deployment if verify-deployment fails
   rollback:
     runs-on: ubuntu-latest
-    needs: verify-deployment
+    needs: smoke-tests
     if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
     steps:
