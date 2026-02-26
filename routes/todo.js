@@ -1,3 +1,4 @@
+const Sentry = require("@sentry/node");
 const { Router } = require("express");
 const { getDb, saveDb } = require("../database/database");
 
@@ -23,6 +24,7 @@ router.post("/", async (req, res) => {
     const todo = toObj(row);
     res.status(201).json(todo);
   } catch (error) {
+    Sentry.captureException(error);
     console.error(error);
     res.status(500).json({ detail: "Internal Server Error" });
   }
@@ -43,6 +45,7 @@ router.get("/", async (req, res) => {
     console.log("found " + x.length + " todos")
     res.json(x);
   } catch (error) {
+    Sentry.captureException(error);
     console.error(error);
     res.status(500).json({ detail: "Internal Server Error" });
   }
@@ -60,6 +63,7 @@ router.get("/:id", async (req, res) => {
     if (!rows.length || !rows[0].values.length) return res.status(404).json({ detail: "Todo not found" });
     res.json(toObj(rows));
   } catch (error) {
+    Sentry.captureException(error);
     console.error(error);
     res.status(500).json({ detail: "Internal Server Error" });
   }
@@ -86,6 +90,7 @@ router.put("/:id", async (req, res) => {
     saveDb();
     res.json(toObj(rows));
   } catch (error) {
+    Sentry.captureException(error);
     console.error(error);
     res.status(500).json({ detail: "Internal Server Error" });
   }
@@ -104,6 +109,7 @@ router.delete("/:id", async (req, res) => {
     saveDb();
     res.json({ detail: "Todo deleted" });
   } catch (error) {
+    Sentry.captureException(error);
     console.error(error);
     res.status(500).json({ detail: "Internal Server Error" });
   }
@@ -121,6 +127,7 @@ router.get("/search/all", async (req, res) => {
     const rows = db.exec("SELECT * FROM todos WHERE title LIKE ?", [`%${q}%`]);
     res.json(toArray(rows));
   } catch (error) {
+    Sentry.captureException(error);
     console.error(error);
     res.status(500).json({ detail: "Internal Server Error" });
   }
