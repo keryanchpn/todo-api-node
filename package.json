@@ -33,6 +33,11 @@
     "sql.js": "^1.6.0",
     "swagger-ui-express": "^5.0.1"
   },
+  "overrides": {
+    "@fastify/otel": {
+      "minimatch": "10.2.4"
+    }
+  },
   "devDependencies": {
     "@stoplight/spectral-cli": "^6.15.0",
     "@stoplight/spectral-rulesets": "^1.21.0",
