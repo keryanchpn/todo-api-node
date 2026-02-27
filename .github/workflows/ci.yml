@@ -9,7 +9,7 @@ on:
     branches: [main]
 
 jobs:
-  # Lints the codebase using ESLint
+  # Lints the codebase using ESLint 
   lint:
     runs-on: ubuntu-latest
     steps:
