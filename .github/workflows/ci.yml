@@ -31,6 +31,38 @@ jobs:
   # Runs tests and generates coverage report using Jest
   test:
     runs-on: ubuntu-latest
+    needs: lint
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Test with coverage
+        run: npx jest --coverage
+
+      - name: Upload coverage report
+        if: always() && matrix.node-version == 20
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+
+  # API Contract Testing
+  contract-testing:
+    runs-on: ubuntu-latest
+    needs: lint
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -44,36 +76,14 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
-      - name: Test with coverage
-        run: npx jest --coverage
+      - name: OpenAPI Contract Validation (spectral)
+        run: npx spectral lint swagger.json
 
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: coverage-report
-          path: coverage/
-          retention-days: 7
-
-   # NATHAN
-   # Scans for security vulnerabilities 
+  # NATHAN
+  # Scans for security vulnerabilities (reusable workflow)
   security-scan:
-    runs-on: ubuntu-latest
     needs: lint
-    steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci --ignore-scripts
-
-      - name: Security audit
-        run: npm audit --audit-level=high --omit=dev
+    uses: ./.github/workflows/reusable-security.yml
   
   # NATHAN
   # Performs static code analysis using SonarCloud
@@ -101,7 +111,7 @@ jobs:
             -Dsonar.projectKey=keryanchpn_todo-api-node
 
   # BAPTISTE
-  # Builds a Docker image and pushes it to GitHub Container Registry (only on push to main) 
+  # Builds a Docker image and pushes it to GitHub Container Registry (only on push to main)
   docker-build-push:
     needs: quality-gate
     runs-on: ubuntu-latest
@@ -128,18 +138,21 @@ jobs:
           tags: ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            SENTRY_DSN=${{ secrets.SENTRY_DSN }}
 
   # KERYAN
+  # Canary deployment: staging acts as a canary environment before production promotion
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [quality-gate, security-scan, contract-testing]
     if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     environment: staging
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
-      - name: Deploy to Vercel (staging preview)
+      - name: Deploy canary to Vercel (staging)
         run: npx vercel --yes
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -150,7 +163,7 @@ jobs:
   # KERYAN
   deploy-production:
     runs-on: ubuntu-latest
-    needs: quality-gate
+    needs: [quality-gate, security-scan, contract-testing]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: production
     steps:
@@ -178,8 +191,22 @@ jobs:
           filename: k6/script.js
 
 
+  notify:
+    runs-on: ubuntu-latest
+    needs: [lint, test, contract-testing, security-scan, quality-gate, deploy-production, smoke-tests, performance-tests]
+    if: always() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Discord notification
+        uses: rjstone/discord-webhook-notify@v1
+        with:
+          severity: ${{ contains(needs.*.result, 'failure') && 'error' || 'info' }}
+          text: |
+            **${{ github.repository }}** — Pipeline `${{ contains(needs.*.result, 'failure') && 'FAILED' || 'SUCCESS' }}`
+            Branch: `${{ github.ref_name }}` · Commit: `${{ github.sha }}`
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+
   # KERYAN
-  verify-deployment:
+  smoke-tests:
     runs-on: ubuntu-latest
     needs: deploy-production
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -187,7 +214,7 @@ jobs:
       - name: Wait for deployment to be ready
         run: sleep 5
 
-      - name: Check /health returns HTTP 200
+      - name: Run post-deploy smoke tests and health-check
         run: |
           for i in {1..12}; do
             STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://todo-api-node.vercel.app/health)
@@ -200,3 +227,52 @@ jobs:
           done
           echo "Health check failed after 2 minutes"
           exit 1
+
+  # BAPTISTE
+  # Rolls back to the previous Vercel deployment if verify-deployment fails
+  rollback:
+    runs-on: ubuntu-latest
+    needs: smoke-tests
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Get previous deployment URL
+        id: previous-deployment
+        run: |
+          PREVIOUS_URL=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v6/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&limit=5&target=production" \
+            | jq -r '[.deployments[] | select(.state == "READY")] | .[1].url // empty')
+          if [ -z "$PREVIOUS_URL" ]; then
+            echo "No previous deployment found to rollback to"
+            exit 1
+          fi
+          echo "url=$PREVIOUS_URL" >> "$GITHUB_OUTPUT"
+          echo "Rolling back to: $PREVIOUS_URL"
+
+      - name: Promote previous deployment to production
+        run: |
+          DEPLOYMENT_ID=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            "https://api.vercel.com/v6/deployments?projectId=${{ secrets.VERCEL_PROJECT_ID }}&limit=5&target=production" \
+            | jq -r '[.deployments[] | select(.state == "READY")] | .[1].uid')
+          curl -s -X PATCH \
+            -H "Authorization: Bearer ${{ secrets.VERCEL_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"id\": \"$DEPLOYMENT_ID\"}" \
+            "https://api.vercel.com/v12/now/alias?projectId=${{ secrets.VERCEL_PROJECT_ID }}"
+          echo "Rollback initiated to deployment $DEPLOYMENT_ID"
+
+      - name: Verify rollback
+        run: |
+          sleep 10
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://todo-api-node.vercel.app/health)
+          if [ "$STATUS" = "200" ]; then
+            echo "Rollback successful — health check passed (HTTP $STATUS)"
+          else
+            echo "Rollback verification failed (HTTP $STATUS)"
+            exit 1
+          fi
